@@ -34,6 +34,7 @@ export default class MjImage extends BodyComponent {
     height: 'unit(px,auto)',
     'max-height': 'unit(px,%)',
     'font-size': 'unit(px)',
+    'custom-link-attrs': 'stringified array of key value pair, [{attr:"", val:""}]',
   }
 
   static defaultAttributes = {
@@ -110,14 +111,17 @@ export default class MjImage extends BodyComponent {
     `
 
     if (this.getAttribute('href')) {
+      let htmlAttrs = {   
+        href: this.getAttribute('href'),
+        target: this.getAttribute('target'),
+        rel: this.getAttribute('rel'),
+        name: this.getAttribute('name'),
+      }
+      this.applyCustomLinkAttrs({htmlAttrs})
+
       return `
         <a
-          ${this.htmlAttributes({
-            href: this.getAttribute('href'),
-            target: this.getAttribute('target'),
-            rel: this.getAttribute('rel'),
-            name: this.getAttribute('name'),
-          })}
+          ${this.htmlAttributes(htmlAttrs)}
         >
           ${img}
         </a>
@@ -125,6 +129,28 @@ export default class MjImage extends BodyComponent {
     }
 
     return img
+  }
+
+  applyCustomLinkAttrs({htmlAttrs}) {
+    try{
+      const customLinkAttrsStr = this.getAttribute('custom-link-attrs')
+      if(customLinkAttrsStr){
+        const attrsArr = customLinkAttrsStr.split(';')
+        for(let attrItem of attrsArr){
+          if(attrItem){
+            let pair = attrItem.split(':')
+            let key = pair[0].trim()
+            let val = pair[1].trim()
+            if(key){
+              htmlAttrs[key] = val
+            }
+          }
+        }       
+      }
+    }
+    catch(err){
+      console.log("Attribute value for attribute custom-link-attrs is illegal")
+    }
   }
 
   headStyle = breakpoint => `
